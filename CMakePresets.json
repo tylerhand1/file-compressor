@@ -1,0 +1,36 @@
+{
+  "version": 8,
+    "configurePresets": [
+    {
+      "name": "default-debug",
+      "displayName": "Default Debug",
+      "description": "Standard cross-platform Debug configuration",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default-debug",
+      "configurePreset": "default-debug",
+      "description": "Build target mapping for the default-debug configuration"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "run-tests",
+      "configurePreset": "default-debug",
+      "description": "Industry-standard CTest automation preset",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      }
+    }
+  ]
+}

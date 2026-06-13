@@ -1,0 +1,69 @@
+#  Build Directories & Tooling Cache
+build*/
+*build*/
+out/
+_deps/
+.cache/
+vcpkg_installed/
+
+# CMake Generated Files
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+CMakeUserPresets.json
+
+# IDEs
+.vscode/
+.idea/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln
+*.vcxproj
+*.filters
+
+# Compiled Object & Precompiled Header Files
+*.d
+*.slo
+*.lo
+*.o
+*.obj
+*.gch
+*.pch
+
+# Compiled Libraries & Linker Artifacts
+*.lai
+*.la
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.so.*
+*.ilk
+
+# Debugger & Diagnostics
+*.pdb
+*.dwo
+
+# Executables & Fortran Modules
+*.exe
+*.out
+*.app
+*.mod
+*.smod
+
+# Temporary Files & Logs
+*.tmp
+*.log
+*.bak
+*.swp
+.DS_Store

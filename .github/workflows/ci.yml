@@ -1,0 +1,46 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-project:
+    name: Build Project
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v4.2.2
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ccache clang-format python3-pip
+
+      - name: Configure ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-ccache-${{ hashFiles('**/CMakeLists.txt') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-${{ hashFiles('**/CMakeLists.txt') }}-
+            ${{ runner.os }}-ccache-
+
+      - name: Configure CMake
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Check Code Formatting
+        run: |
+          cmake --build build --target format
+          git diff --exit-code || (echo "Error: Code is not formatted! Run 'cmake --build build --target format' locally and push again." && exit 1)
+
+      - name: Build Project
+        run: cmake --build build
+
+      - name: Run Catch2 Tests
+        run: cd build && ctest --output-on-failure
