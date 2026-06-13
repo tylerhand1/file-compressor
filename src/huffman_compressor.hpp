@@ -1,6 +1,9 @@
+#pragma once
 #include "compressor.hpp"
 
+#include <cstdint>
 #include <iostream>
+#include <vector>
 
 class HuffmanCompressor : public Compressor {
   public:
