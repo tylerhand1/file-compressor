@@ -1,5 +1,5 @@
 #pragma once
-#include "compressor.hpp"
+#include "compressor.h"
 
 #include <cstdint>
 #include <iostream>

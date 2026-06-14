@@ -1,4 +1,4 @@
-#include "huffman_compressor.hpp"
+#include "huffman_compressor.h"
 
 #include <iostream>
 
