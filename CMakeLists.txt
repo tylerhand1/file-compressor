@@ -20,6 +20,24 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_subdirectory(tests)
 endif()
 
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+    set(SOURCE_DB "${CMAKE_BINARY_DIR}/compile_commands.json")
+    set(TARGET_DB "${CMAKE_SOURCE_DIR}/compile_commands.json")
+    
+    if(NOT EXISTS "${TARGET_DB}")
+        if(WIN32)
+            add_custom_target(link_compile_commands ALL
+                COMMAND ${CMAKE_COMMAND} -E copy "${SOURCE_DB}" "${TARGET_DB}"
+                COMMENT "Copying compilation database to project root for tool indexing..."
+            )
+        else()
+            execute_process(
+                COMMAND ${CMAKE_COMMAND} -E create_symlink "${SOURCE_DB}" "${TARGET_DB}"
+            )
+        endif()
+    endif()
+endif()
+
 find_program(CLANG_FORMAT_EXE clang-format)
 
 if(NOT CLANG_FORMAT_EXE)
