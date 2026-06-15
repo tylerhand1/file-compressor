@@ -12,7 +12,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     include(FetchContent)
     FetchContent_Declare(
       Catch2
-      GIT_REPOSITORY https://github.com
+      GIT_REPOSITORY https://github.com/catchorg/Catch2
       GIT_TAG        v3.15.0
     )
     FetchContent_MakeAvailable(Catch2)
