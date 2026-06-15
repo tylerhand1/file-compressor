@@ -8,10 +8,11 @@
 #include <iostream>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
-void HuffmanCompressor::generate_path(const HuffmanCompressor::HuffmanNode* node,
-                                      const std::string& current_path,
-                                      std::unordered_map<uint8_t, std::string>& lookup_table) {
+void HuffmanCompressor::generate_path(
+    const HuffmanCompressor::HuffmanNode* node, std::vector<bool>& current_path,
+    std::unordered_map<uint8_t, std::vector<bool>>& lookup_table) {
     if (!node)
         return;
 
@@ -20,8 +21,13 @@ void HuffmanCompressor::generate_path(const HuffmanCompressor::HuffmanNode* node
         return;
     }
 
-    generate_path(node->left.get(), current_path + "0", lookup_table);
-    generate_path(node->right.get(), current_path + "1", lookup_table);
+    current_path.push_back(false);
+    generate_path(node->left.get(), current_path, lookup_table);
+    current_path.pop_back();
+
+    current_path.push_back(true);
+    generate_path(node->right.get(), current_path, lookup_table);
+    current_path.pop_back();
 }
 
 void HuffmanCompressor::serialize_tree(const HuffmanCompressor::HuffmanNode* node,
@@ -88,14 +94,15 @@ std::vector<uint8_t> HuffmanCompressor::compress(const std::vector<uint8_t>& dat
         min_heap.pop();
     }
 
-    std::unordered_map<uint8_t, std::string> lookup_table;
+    std::unordered_map<uint8_t, std::vector<bool>> lookup_table;
     if (tree_root) {
-        generate_path(tree_root.get(), "", lookup_table);
+        std::vector<bool> buffer;
+        generate_path(tree_root.get(), buffer, lookup_table);
     }
 
-    std::array<std::string, 256> fast_lookup;
-    for (const auto& [byte_val, bit_str] : lookup_table) {
-        fast_lookup[byte_val] = bit_str;
+    std::array<std::vector<bool>, 256> fast_lookup;
+    for (const auto& [byte_val, bit_vector] : lookup_table) {
+        fast_lookup[byte_val] = bit_vector;
     }
 
     BitWriter writer;
@@ -105,10 +112,10 @@ std::vector<uint8_t> HuffmanCompressor::compress(const std::vector<uint8_t>& dat
     }
 
     for (uint8_t byte : data) {
-        const std::string& bit_str = fast_lookup[byte];
+        const std::vector<bool>& bit_vector = fast_lookup[byte];
 
-        for (char bit : bit_str) {
-            writer.write_bit(bit == '1');
+        for (bool bit : bit_vector) {
+            writer.write_bit(bit);
         }
     }
 

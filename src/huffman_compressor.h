@@ -33,8 +33,8 @@ class HuffmanCompressor : public Compressor {
     using MinHeap = std::priority_queue<std::unique_ptr<HuffmanNode>,
                                         std::vector<std::unique_ptr<HuffmanNode>>, CompareNodes>;
 
-    static void generate_path(const HuffmanNode* node, const std::string& current_path,
-                              std::unordered_map<uint8_t, std::string>& lookup_table);
+    static void generate_path(const HuffmanNode* node, std::vector<bool>& current_path,
+                              std::unordered_map<uint8_t, std::vector<bool>>& lookup_table);
 
     static void serialize_tree(const HuffmanCompressor::HuffmanNode* node, BitWriter& writer);
 };
