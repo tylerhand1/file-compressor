@@ -2,11 +2,21 @@
 
 A C++17 project for compressing and decompressing files.
 
+## Motivation & Purpose
+
+This project is a high-performance exploration of file compression using C++ and applying best practices in OOP like Dependency Injection and testing with CTest and Catch2.
+
+Rather than relying on high-level libraries to implement file compression, I wanted to see how huffman coding in action:
+* **Algorithmic Complexity:** Implementing a native Huffman Coding engine using priority queues, tree-traversal serialization, and localized frequency maps.
+* **Low-Level Bit Streaming:** Developing custom bit-level stream wrappers (`file_bit_writer` and `file_bit_reader`) to allow packing fractional byte arrays seamlessly onto a raw disk subsystem.
+* **Production-Grade Infrastructure:** Building a fully modern DevOps environment utilizing strict compiler memory sanitizers (ASan), local automated format validation via Git hooks, and deterministic cross-platform building via CMake Presets.
+
 ## Tech Stack & Tools
-* **Build System:** CMake (Version 3.14+)
+* **Build System:** Modern CMake (Version 3.14+) utilizing **CMake Presets**
 * **Testing Framework:** Catch2 & CTest
+* **Memory Diagnostics:** AddressSanitizer (ASan) built into the compiler pipelines
 * **Code Quality:** Native Git Hook via CMake (Customized LLVM-style Clang-Format)
-* **CI Pipeline:** GitHub Actions (Validates styling compliance, compiles with `ccache`, and executes unit tests on push)
+* **CI Pipeline:** GitHub Actions (Validates formatting compliance, compiles with `ccache`, and executes parallel unit tests and ASan leak/memory analysis on push)
 
 ---
 
@@ -42,18 +52,25 @@ To compile the final production build:
 cmake --preset production
 cmake --build --preset production
 ```
-
+The optimized executable will be generated inside the `out/build/production/src/file-compressor` folder.
 
 ---
 
 ## Memory Diagnostics (AddressSanitizer)
 
-To catch critical bugs like memory leaks, out-of-bounds array accesses, and pointer corruptions early, this project includes a dedicated **AddressSanitizer (ASan)** configuration that can be run natively on your local machine:
+To catch critical bugs like memory leaks, out-of-bounds array accesses, and pointer corruptions early, this project includes dedicated **AddressSanitizer (ASan)** configurations.
 
+#### Run Natively on macOS (MacBook Air)
+On macOS, run with leak detection deactivated to comply with Apple's development tool constraints, while retaining full tracking for buffer overflows and memory corruption:
 ```bash
 cmake --preset asan
 cmake --build --preset asan
+ctest --preset run-asan-tests-mac --test-dir out/build/asan
+```
 
+#### Run on Linux (Linux CI / GitHub Actions)
+On Linux environments, full tracking is executed back-to-back, catching traditional memory leaks alongside standard corruption:
+```bash
 ctest --preset run-asan-tests --test-dir out/build/asan
 ```
 
