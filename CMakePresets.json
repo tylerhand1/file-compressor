@@ -10,6 +10,29 @@
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
         "CMAKE_BUILD_TYPE": "Debug"
       }
+    },
+    {
+      "name": "asan",
+      "displayName": "AddressSanitizer (Memory Check)",
+      "description": "Standard Debug build with compiler memory sanitizers enabled",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address -fno-omit-frame-pointer",
+        "CMAKE_C_FLAGS": "-fsanitize=address -fno-omit-frame-pointer",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address",
+        "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=address"
+      }
+    },
+    {
+      "name": "production",
+      "displayName": "Production Release",
+      "description": "Optimized release configuration",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     }
   ],
   "buildPresets": [
@@ -17,6 +40,16 @@
       "name": "default-debug",
       "configurePreset": "default-debug",
       "description": "Build target mapping for the default-debug configuration"
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan",
+      "description": "Build target mapping for asan configuration"
+    },
+    {
+      "name": "production",
+      "configurePreset": "production",
+      "description": "Build target mapping for the production configuration"
     }
   ],
   "testPresets": [
@@ -30,6 +63,31 @@
       "execution": {
         "noTestsAction": "error",
         "stopOnFailure": false
+      }
+    },
+    {
+      "name": "run-asan-tests",
+      "configurePreset": "asan",
+      "description": "Runs Catch2 tests with strict memory safety checks active",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      },
+     "environment": {
+        "ASAN_OPTIONS": "detect_leaks=1:color=always"
+      }
+    },
+    {
+      "name": "run-asan-tests-mac",
+      "configurePreset": "asan",
+      "description": "Mac version of asan tests",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false },
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=0:color=always"
       }
     }
   ]

@@ -3,43 +3,65 @@ project(file-compressor VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-enable_testing()
-include(FetchContent)
-FetchContent_Declare(
-  Catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2
-  GIT_TAG        v3.15.0
-)
-FetchContent_MakeAvailable(Catch2)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+add_compile_options(-std=c++17)
 
 add_subdirectory(src)
-add_subdirectory(tests)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    include(CTest)
+    include(FetchContent)
+    FetchContent_Declare(
+      Catch2
+      GIT_REPOSITORY https://github.com/catchorg/Catch2
+      GIT_TAG        v3.15.0
+    )
+    FetchContent_MakeAvailable(Catch2)
+
+    add_subdirectory(tests)
+endif()
+
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+    set(SOURCE_DB "${CMAKE_BINARY_DIR}/compile_commands.json")
+    set(TARGET_DB "${CMAKE_SOURCE_DIR}/compile_commands.json")
+
+    if(NOT EXISTS "${TARGET_DB}")
+        if(WIN32)
+            add_custom_target(link_compile_commands ALL
+                COMMAND ${CMAKE_COMMAND} -E copy "${SOURCE_DB}" "${TARGET_DB}"
+                COMMENT "Copying compilation database to project root for tool indexing..."
+            )
+        else()
+            execute_process(
+                COMMAND ${CMAKE_COMMAND} -E create_symlink "${SOURCE_DB}" "${TARGET_DB}"
+            )
+        endif()
+    endif()
+endif()
 
 find_program(CLANG_FORMAT_EXE clang-format)
 
 if(NOT CLANG_FORMAT_EXE)
     message(STATUS "clang-format not found. Attempting to install via pip...")
     find_package(Python3 COMPONENTS Interpreter REQUIRED)
-    
+
     execute_process(
         COMMAND ${Python3_EXECUTABLE} -m pip install clang-format
         RESULT_VARIABLE PIP_INSTALL_RESULT
         OUTPUT_QUIET
         ERROR_QUIET
     )
-    
+
     find_program(CLANG_FORMAT_EXE clang-format)
 endif()
 
 if(CLANG_FORMAT_EXE)
     message(STATUS "Ready using clang-format: ${CLANG_FORMAT_EXE}")
-    
-    file(GLOB_RECURSE FORMAT_SOURCES 
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" 
+
+    file(GLOB_RECURSE FORMAT_SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp" 
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.hpp"
     )
@@ -51,8 +73,8 @@ if(CLANG_FORMAT_EXE)
 
     if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
         set(HOOK_FILE "${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit")
-        
-        set(HOOK_CONTENT 
+
+        set(HOOK_CONTENT
 "#!/bin/bash
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\\.(h|hpp|c|cpp|cc|cxx)$')
 if [ -z \"\$STAGED_FILES\" ]; then exit 0; fi
@@ -69,13 +91,13 @@ fi
 echo \"Code formatting passes validation!\"
 exit 0"
         )
-        
+
         file(WRITE ${HOOK_FILE} "${HOOK_CONTENT}")
-        
+
         if(NOT WIN32)
             execute_process(COMMAND chmod +x ${HOOK_FILE})
         endif()
-        
+
         message(STATUS "Successfully installed native Git pre-commit formatting hook!")
     endif()
 
