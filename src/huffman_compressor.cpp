@@ -2,6 +2,7 @@
 
 #include "bit_reader.h"
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
