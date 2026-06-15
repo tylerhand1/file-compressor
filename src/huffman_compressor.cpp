@@ -1,7 +1,5 @@
 #include "huffman_compressor.h"
 
-#include "bit_writer.h"
-
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -30,25 +28,24 @@ void HuffmanCompressor::generate_path(
     current_path.pop_back();
 }
 
-void HuffmanCompressor::serialize_tree(const HuffmanCompressor::HuffmanNode* node,
-                                       BitWriter& writer) {
+void HuffmanCompressor::serialize_tree(const HuffmanCompressor::HuffmanNode* node) {
     if (!node)
         return;
 
     if (node->character.has_value()) {
-        writer.write_bit(true);
+        writer->write_bit(true);
 
         uint8_t ch = node->character.value();
         for (int i = 7; i >= 0; --i) {
-            writer.write_bit(((ch >> i) & 1) == 1);
+            writer->write_bit(((ch >> i) & 1) == 1);
         }
         return;
     }
 
-    writer.write_bit(false);
+    writer->write_bit(false);
 
-    serialize_tree(node->left.get(), writer);
-    serialize_tree(node->right.get(), writer);
+    serialize_tree(node->left.get());
+    serialize_tree(node->right.get());
 }
 
 std::vector<uint8_t> HuffmanCompressor::compress(const std::vector<uint8_t>& data) {
@@ -105,23 +102,21 @@ std::vector<uint8_t> HuffmanCompressor::compress(const std::vector<uint8_t>& dat
         fast_lookup[byte_val] = bit_vector;
     }
 
-    BitWriter writer;
-
     if (tree_root) {
-        serialize_tree(tree_root.get(), writer);
+        serialize_tree(tree_root.get());
     }
 
     for (uint8_t byte : data) {
         const std::vector<bool>& bit_vector = fast_lookup[byte];
 
         for (bool bit : bit_vector) {
-            writer.write_bit(bit);
+            writer->write_bit(bit);
         }
     }
 
-    writer.flush();
+    writer->flush();
 
-    return writer.get_data();
+    return writer->get_data();
 }
 
 std::vector<uint8_t> HuffmanCompressor::decompress(const std::vector<uint8_t>& data) {

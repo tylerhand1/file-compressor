@@ -1,10 +1,15 @@
+#include "bit_writer.h"
+#include "file_bit_writer.h"
 #include "huffman_compressor.h"
 
 #include <cstdio>
+#include <memory>
 #include <vector>
 
 int main() {
-    std::unique_ptr<Compressor> huffmanCompressor = std::make_unique<HuffmanCompressor>();
+    std::unique_ptr<BitWriter> bitWriter = std::make_unique<FileBitWriter>();
+    std::unique_ptr<Compressor> huffmanCompressor =
+        std::make_unique<HuffmanCompressor>(std::move(bitWriter));
 
     std::vector<uint8_t> dummyData = {
         1,
