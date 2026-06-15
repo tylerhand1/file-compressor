@@ -6,17 +6,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_options(-std=c++17)
 
-enable_testing()
-include(FetchContent)
-FetchContent_Declare(
-  Catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2
-  GIT_TAG        v3.15.0
-)
-FetchContent_MakeAvailable(Catch2)
-
 add_subdirectory(src)
-add_subdirectory(tests)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    include(CTest)
+    include(FetchContent)
+    FetchContent_Declare(
+      Catch2
+      GIT_REPOSITORY https://github.com
+      GIT_TAG        v3.15.0
+    )
+    FetchContent_MakeAvailable(Catch2)
+
+    add_subdirectory(tests)
+endif()
 
 find_program(CLANG_FORMAT_EXE clang-format)
 

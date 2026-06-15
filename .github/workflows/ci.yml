@@ -28,19 +28,31 @@ jobs:
             ${{ runner.os }}-ccache-${{ hashFiles('**/CMakeLists.txt') }}-
             ${{ runner.os }}-ccache-
 
-      - name: Configure CMake
+      - name: Configure CMake (Standard)
         run: |
-          cmake -B build -S . \
+          cmake --preset default-debug \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Check Code Formatting
         run: |
-          cmake --build build --target format
+          cmake --build out/build/default-debug --target format
           git diff --exit-code || (echo "Error: Code is not formatted! Run 'cmake --build build --target format' locally and push again." && exit 1)
 
-      - name: Build Project
-        run: cmake --build build
+      - name: Build Project (Standard)
+        run: cmake --build --preset default-debug
 
-      - name: Run Catch2 Tests
-        run: cd build && ctest --output-on-failure
+      - name: Run Catch2 Tests (Standard)
+        run: ctest --preset run-tests --test-dir out/build/default-debug
+
+      - name: Configure CMake (ASan)
+        run: |
+          cmake --preset asan \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Build Project (ASan)
+        run: cmake --build --preset asan
+
+      - name: Run ASan Memory & Unit Tests
+        run: ctest --preset run-asan-tests-ci --test-dir out/build/asan

@@ -19,21 +19,42 @@ Ensure the following tools are installed globally on your host system:
 * **Clang-Format** (Version 14 or higher)
 
 ### 2. Configure the Project
-Generate the build system. This step automatically provisions and activates the local repository formatting validation hooks.
+Generate the build system using the unified debug preset. This step automatically provisions and activates the local repository formatting validation hooks.
 ```bash
-cmake -B build -S .
+cmake --preset default-debug
 ```
 
 ### 3. Build the Project
-Compile the source code and testing suites:
+Compile the source code and testing suites using the native build target tracking:
 ```bash
-cmake --build build
+cmake --build --preset default-debug
 ```
 
 ### 4. Run the Tests
-Execute the compiled Catch2 test suites using CTest:
+Execute your standard unit test assertions using the native automation configuration:
 ```bash
-cd build && ctest --output-on-failure
+ctest --preset run-tests --test-dir out/build/default-debug
+```
+
+### 5. Production Release (Optimized Build)
+To compile the final production build:
+```bash
+cmake --preset production
+cmake --build --preset production
+```
+
+
+---
+
+## Memory Diagnostics (AddressSanitizer)
+
+To catch critical bugs like memory leaks, out-of-bounds array accesses, and pointer corruptions early, this project includes a dedicated **AddressSanitizer (ASan)** configuration that can be run natively on your local machine:
+
+```bash
+cmake --preset asan
+cmake --build --preset asan
+
+ctest --preset run-asan-tests --test-dir out/build/asan
 ```
 
 ---
@@ -45,5 +66,5 @@ This project enforces a strict, customized **LLVM style** (4-space indentation, 
 To ensure consistency, local commits will be rejected if code formatting rules are broken. You can automatically reformat your staging branch files at any time by running:
 
 ```bash
-cmake --build build --target format
+cmake --build out/build/default-debug --target format
 ```
