@@ -17,7 +17,7 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ccache clang-format python3-pip
+          sudo apt-get install -y ccache
 
       - name: Configure ccache
         uses: actions/cache@v4
@@ -28,19 +28,42 @@ jobs:
             ${{ runner.os }}-ccache-${{ hashFiles('**/CMakeLists.txt') }}-
             ${{ runner.os }}-ccache-
 
-      - name: Configure CMake
+      - name: Configure CMake (Standard)
         run: |
-          cmake -B build -S . \
+          cmake --preset default-debug \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
-      - name: Check Code Formatting
+      - name: Check Code Formatting and Linting
+        uses: cpp-linter/cpp-linter-action@v2
+        id: linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          style: 'file'
+          version: '22'
+          tidy-checks: ''
+
+      - name: Fail CI if formatting is incorrect
+        if: steps.linter.outputs.checks-failed != 0
         run: |
-          cmake --build build --target format
-          git diff --exit-code || (echo "Error: Code is not formatted! Run 'cmake --build build --target format' locally and push again." && exit 1)
+          echo "Error: Code is not formatted according to clang-format 22!"
+          exit 1
 
-      - name: Build Project
-        run: cmake --build build
+      - name: Build Project (Standard)
+        run: cmake --build --preset default-debug
 
-      - name: Run Catch2 Tests
-        run: cd build && ctest --output-on-failure
+      - name: Run Catch2 Tests (Standard)
+        run: ctest --preset run-tests --test-dir out/build/default-debug
+
+      - name: Configure CMake (ASan)
+        run: |
+          cmake --preset asan \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Build Project (ASan)
+        run: cmake --build --preset asan
+
+      - name: Run ASan Memory & Unit Tests
+        run: ctest --preset run-asan-tests --test-dir out/build/asan

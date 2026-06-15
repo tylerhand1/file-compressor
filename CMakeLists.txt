@@ -3,18 +3,40 @@ project(file-compressor VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-enable_testing()
-include(FetchContent)
-FetchContent_Declare(
-  Catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2
-  GIT_TAG        v3.15.0
-)
-FetchContent_MakeAvailable(Catch2)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+add_compile_options(-std=c++17)
 
 add_subdirectory(src)
-add_subdirectory(tests)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    include(CTest)
+    include(FetchContent)
+    FetchContent_Declare(
+      Catch2
+      GIT_REPOSITORY https://github.com/catchorg/Catch2
+      GIT_TAG        v3.15.0
+    )
+    FetchContent_MakeAvailable(Catch2)
+
+    add_subdirectory(tests)
+endif()
+
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+    set(SOURCE_DB "${CMAKE_BINARY_DIR}/compile_commands.json")
+    set(TARGET_DB "${CMAKE_SOURCE_DIR}/compile_commands.json")
+    
+    if(NOT EXISTS "${TARGET_DB}")
+        if(WIN32)
+            add_custom_target(link_compile_commands ALL
+                COMMAND ${CMAKE_COMMAND} -E copy "${SOURCE_DB}" "${TARGET_DB}"
+                COMMENT "Copying compilation database to project root for tool indexing..."
+            )
+        else()
+            execute_process(
+                COMMAND ${CMAKE_COMMAND} -E create_symlink "${SOURCE_DB}" "${TARGET_DB}"
+            )
+        endif()
+    endif()
+endif()
 
 find_program(CLANG_FORMAT_EXE clang-format)
 
