@@ -6,22 +6,22 @@ A C++17 project for compressing and decompressing files by implementing Huffman 
 
 I chose to build this out of curiosity for file compression after utilizing `compressorJs` in a separate project. So I decided to try it in C++ for a challenge. This project handles text and binary files, achieving up to a 44% reduction in file size for standard English text.
 
-I built the engine using modern object-oriented software engineering principles, featuring automated memory safety, dependency inversion, and built-in telemetry of the compression.
+I built the engine using modern object-oriented software engineering principles, featuring automated memory safety, dependency inversion, and terminal output tracking to log compression ratios.
 
 ## Key Architectural Decisions & Engineering Highlights
 
 * **Smart Pointers**: Enforced memory safety by managing the binary tree entirely through `std::unique_ptr` and ensuring automatic cleanup.
 * **Decoupled Dependency Injection (DI)**: Designed the compression engine around strict DI principles by injecting the abstract output `BitWriter` interface via the constructor. This decouples the core compression logic from the underlying storage medium, allowing seamless extensibility for alternative output destinations.
 * **Encapsulated Bit-wise Logic**: Isolated bit-wise logic into `BitWriter` and `BitReader` classes to keep the core `HuffmanCompressor` class clean.
-* **Robust Boundary Safeguards**: Implemented bounds checking inside the data streaming modules to prevent runtime memory violations during tree traversal.
+* **Safe Bitstreaming Operations**: Configured index validation within the I/O data streams to ensure no run-time memory violations during binary tree parsing.
 * **Automated CI Pipeline**: Configured CMake presets, Catch2 unit tests, and AddressSanitizer (ASan) memory profiling to catch memory leaks and overflows automatically in CI.
 
 
 ## Tech Stack & Tools
 * **Build System:** Modern CMake (Version 3.14+) utilizing **CMake Presets**
 * **Testing Framework:** Catch2 & CTest
-* **Memory Diagnostics:** AddressSanitizer (ASan) built into the compiler pipelines
-* **Code Quality:** Native Git Hook via CMake (Customized LLVM-style Clang-Format)
+* **Memory Diagnostics:** AddressSanitizer (ASan)
+* **Code Quality & Linting:** Utilizing `pre-commit` framework and `clang-format` checks
 * **CI Pipeline:** GitHub Actions (Validates formatting compliance, compiles with `ccache`, and executes parallel unit tests and ASan leak/memory analysis on push)
 
 ---
@@ -85,13 +85,13 @@ On macOS, run with leak detection deactivated to comply with Apple's development
 ```bash
 cmake --preset asan
 cmake --build --preset asan
-ctest --preset run-asan-tests-mac --test-dir out/build/asan
+ctest --preset run-asan-tests-mac
 ```
 
 #### Run on Linux (Linux CI / GitHub Actions)
 On Linux environments, full tracking is executed back-to-back, catching traditional memory leaks alongside standard corruption:
 ```bash
-ctest --preset run-asan-tests --test-dir out/build/asan
+ctest --preset run-asan-tests
 ```
 
 ---
