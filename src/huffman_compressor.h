@@ -13,7 +13,7 @@ class HuffmanCompressor : public Compressor {
     explicit HuffmanCompressor(std::unique_ptr<BitWriter> writer) : writer(std::move(writer)) {
     }
     std::vector<uint8_t> compress(const std::vector<uint8_t>& data) override;
-    std::vector<uint8_t> decompress(const std::vector<uint8_t>& data) override;
+    std::vector<uint8_t> decompress(BitReader& reader) override;
 
   private:
     std::unique_ptr<BitWriter> writer;
@@ -41,4 +41,6 @@ class HuffmanCompressor : public Compressor {
                               std::unordered_map<uint8_t, std::vector<bool>>& lookup_table);
 
     void serialize_tree(const HuffmanCompressor::HuffmanNode* node);
+
+    std::unique_ptr<HuffmanCompressor::HuffmanNode> deserialize_tree(BitReader& reader);
 };

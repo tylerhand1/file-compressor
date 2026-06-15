@@ -1,12 +1,45 @@
 #include "huffman_compressor.h"
 
+#include "bit_reader.h"
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <iostream>
 #include <memory>
 #include <unordered_map>
 #include <vector>
+
+std::vector<uint8_t> HuffmanCompressor::decompress(BitReader& reader) {
+    std::vector<uint8_t> decompressed_data;
+
+    uint32_t total_bytes = reader.read_uint32();
+    if (total_bytes == 0) {
+        return {};
+    }
+
+    std::unique_ptr<HuffmanNode> root = deserialize_tree(reader);
+
+    if (!root->left && !root->right) {
+        return std::vector<uint8_t>(total_bytes, root->character.value());
+    }
+
+    for (uint32_t i = 0; i < total_bytes; i++) {
+        const HuffmanNode* current = root.get();
+
+        while (!current->character.has_value()) {
+            bool bit = reader.read_bit();
+            if (bit) {
+                current = current->right ? current->right.get() : current->left.get();
+            } else {
+                current = current->left ? current->left.get() : current->right.get();
+            }
+        }
+
+        decompressed_data.push_back(current->character.value());
+    }
+
+    return decompressed_data;
+}
 
 void HuffmanCompressor::generate_path(
     const HuffmanCompressor::HuffmanNode* node, std::vector<bool>& current_path,
@@ -44,8 +77,12 @@ void HuffmanCompressor::serialize_tree(const HuffmanCompressor::HuffmanNode* nod
 
     writer->write_bit(false);
 
-    serialize_tree(node->left.get());
-    serialize_tree(node->right.get());
+    if (node->left) {
+        serialize_tree(node->left.get());
+    }
+    if (node->right) {
+        serialize_tree(node->right.get());
+    }
 }
 
 std::vector<uint8_t> HuffmanCompressor::compress(const std::vector<uint8_t>& data) {
@@ -109,6 +146,14 @@ std::vector<uint8_t> HuffmanCompressor::compress(const std::vector<uint8_t>& dat
         fast_lookup[byte_val] = bit_vector;
     }
 
+    uint32_t total_size = static_cast<uint32_t>(data.size());
+    for (int i = 3; i >= 0; --i) {
+        uint8_t byte = (total_size >> (i * 8)) & 0xFF;
+        for (int b = 7; b >= 0; --b) {
+            writer->write_bit(((byte >> b) & 1) == 1);
+        }
+    }
+
     if (tree_root) {
         serialize_tree(tree_root.get());
     }
@@ -126,7 +171,19 @@ std::vector<uint8_t> HuffmanCompressor::compress(const std::vector<uint8_t>& dat
     return writer->get_data();
 }
 
-std::vector<uint8_t> HuffmanCompressor::decompress(const std::vector<uint8_t>& data) {
-    std::cout << "Expanding" << std::endl;
-    return data;
+std::unique_ptr<HuffmanCompressor::HuffmanNode>
+HuffmanCompressor::deserialize_tree(BitReader& reader) {
+    auto node = std::make_unique<HuffmanCompressor::HuffmanNode>();
+
+    if (reader.read_bit()) {
+        node->character = reader.read_byte();
+        node->left = nullptr;
+        node->right = nullptr;
+    } else {
+        node->character = std::nullopt;
+        node->left = deserialize_tree(reader);
+        node->right = deserialize_tree(reader);
+    }
+
+    return node;
 }
