@@ -66,29 +66,36 @@ std::vector<uint8_t> HuffmanCompressor::compress(const std::vector<uint8_t>& dat
             leaf->frequency = static_cast<int>(frequencies[i]);
             leaf->character = static_cast<std::uint8_t>(i);
 
-            min_heap.push(std::move(leaf));
+            min_heap.push_back(std::move(leaf));
         }
     }
 
-    while (min_heap.size() > 1) {
-        auto left_child = std::move(const_cast<std::unique_ptr<HuffmanNode>&>(min_heap.top()));
-        min_heap.pop();
+    auto comp = CompareNodes();
+    std::make_heap(min_heap.begin(), min_heap.end(), comp);
 
-        auto right_child = std::move(const_cast<std::unique_ptr<HuffmanNode>&>(min_heap.top()));
-        min_heap.pop();
+    while (min_heap.size() > 1) {
+        std::pop_heap(min_heap.begin(), min_heap.end(), comp);
+        auto left_child = std::move(min_heap.back());
+        min_heap.pop_back();
+
+        std::pop_heap(min_heap.begin(), min_heap.end(), comp);
+        auto right_child = std::move(min_heap.back());
+        min_heap.pop_back();
 
         auto parent = std::make_unique<HuffmanNode>();
         parent->frequency = left_child->frequency + right_child->frequency;
         parent->left = std::move(left_child);
         parent->right = std::move(right_child);
 
-        min_heap.push(std::move(parent));
+        min_heap.push_back(std::move(parent));
+        std::push_heap(min_heap.begin(), min_heap.end(), comp);
     }
 
     std::unique_ptr<HuffmanNode> tree_root = nullptr;
     if (!min_heap.empty()) {
-        tree_root = std::move(const_cast<std::unique_ptr<HuffmanNode>&>(min_heap.top()));
-        min_heap.pop();
+        std::pop_heap(min_heap.begin(), min_heap.end(), comp);
+        tree_root = std::move(min_heap.back());
+        min_heap.pop_back();
     }
 
     std::unordered_map<uint8_t, std::vector<bool>> lookup_table;

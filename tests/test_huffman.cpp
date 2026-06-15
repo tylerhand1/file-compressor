@@ -1,3 +1,4 @@
+#include "file_bit_writer.h"
 #include "huffman_compressor.h"
 
 #include <catch2/catch_test_macros.hpp>

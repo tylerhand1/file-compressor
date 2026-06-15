@@ -11,12 +11,7 @@ int main() {
     std::unique_ptr<Compressor> huffmanCompressor =
         std::make_unique<HuffmanCompressor>(std::move(bitWriter));
 
-    std::vector<uint8_t> dummyData = {
-        1,
-        2,
-        3,
-        4,
-    };
+    std::vector<uint8_t> dummyData = {1, 2, 3, 4};
 
     std::vector<uint8_t> compressed_bytes = huffmanCompressor->compress(dummyData);
 

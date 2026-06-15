@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
-#include <queue>
+#include <unordered_map>
 #include <vector>
 
 class HuffmanCompressor : public Compressor {
@@ -34,8 +34,7 @@ class HuffmanCompressor : public Compressor {
         }
     };
 
-    using MinHeap = std::priority_queue<std::unique_ptr<HuffmanNode>,
-                                        std::vector<std::unique_ptr<HuffmanNode>>, CompareNodes>;
+    using MinHeap = std::vector<std::unique_ptr<HuffmanNode>>;
 
     static void generate_path(const HuffmanCompressor::HuffmanNode* node,
                               std::vector<bool>& current_path,
