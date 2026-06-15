@@ -1,15 +1,21 @@
 # File Compressor
 
-A C++17 project for compressing and decompressing files.
+A C++17 project for compressing and decompressing files by implementing Huffman coding.
 
 ## Motivation & Purpose
 
-This project is a high-performance exploration of file compression using C++ and applying best practices in OOP like Dependency Injection and testing with CTest and Catch2.
+I chose to build this out of curiosity for file compression after utilizing `compressorJs` in a separate project. So I decided to try it in C++ for a challenge. This project handles text and binary files, achieving up to a 44% reduction in file size for standard English text.
 
-Rather than relying on high-level libraries to implement file compression, I wanted to see how huffman coding in action:
-* **Algorithmic Complexity:** Implementing a native Huffman Coding engine using priority queues, tree-traversal serialization, and localized frequency maps.
-* **Low-Level Bit Streaming:** Developing custom bit-level stream wrappers (`file_bit_writer` and `file_bit_reader`) to allow packing fractional byte arrays seamlessly onto a raw disk subsystem.
-* **Production-Grade Infrastructure:** Building a fully modern DevOps environment utilizing strict compiler memory sanitizers (ASan), local automated format validation via Git hooks, and deterministic cross-platform building via CMake Presets.
+I built the engine using modern object-oriented software engineering principles, featuring automated memory safety, dependency inversion, and built-in telemetry of the compression.
+
+## Key Architectural Decisions & Engineering Highlights
+
+* **Modern Memory Ownership Models**: Enforced compile-time memory safety by managing the binary tree hierarchy entirely through `std::unique_ptr`.
+* **Decoupled Dependency Injection (DI)**: Designed the compression engine around strict DI principles by injecting the abstract output `BitWriter` interface via the constructor. This decouples the core compression logic from the underlying storage medium, allowing seamless extensibility for alternative output destinations.
+* **State-Safe Stream Paradigms**: Isolated runtime input dependencies by passing the `BitReader` interface directly to the decompression method.
+* **Robust Boundary Safeguards**: Implemented bounds checking inside the data streaming modules to prevent runtime memory violations during tree traversal.
+* **Production-Grade Infrastructure**: Formulated a scalable verification pipeline utilizing CMake compilation targets, cross-platform presets, AddressSanitizer (ASan) memory auditing, and Catch2 unit-testing.
+
 
 ## Tech Stack & Tools
 * **Build System:** Modern CMake (Version 3.14+) utilizing **CMake Presets**
@@ -53,6 +59,20 @@ cmake --preset production
 cmake --build --preset production
 ```
 The optimized executable will be generated inside the `out/build/production/src/file-compressor` folder.
+
+---
+
+## CLI Usage & Streaming Rules
+
+The binary acts as a standard command-line pipe utility, automatically guarding against terminal hanging if no stream is detected.
+
+```bash
+# Compress a file
+./out/build/default-debug/src/file-compressor -c < input.txt > output.huff
+
+# Decompress a file
+./out/build/default-debug/src/file-compressor -d < output.huff > restored.txt
+```
 
 ---
 
