@@ -66,4 +66,4 @@ jobs:
         run: cmake --build --preset asan
 
       - name: Run ASan Memory & Unit Tests
-        run: ctest --preset run-asan-tests-ci --test-dir out/build/asan
+        run: ctest --preset run-asan-tests --test-dir out/build/asan
