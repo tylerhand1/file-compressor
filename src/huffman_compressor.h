@@ -3,10 +3,10 @@
 #include "bit_writer.h"
 #include "compressor.h"
 
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <optional>
-#include <unordered_map>
 #include <vector>
 
 class HuffmanCompressor : public Compressor {
@@ -35,7 +35,7 @@ class HuffmanCompressor : public Compressor {
 
     static void generate_path(const HuffmanCompressor::HuffmanNode* node,
                               std::vector<bool>& current_path,
-                              std::unordered_map<uint8_t, std::vector<bool>>& lookup_table);
+                              std::array<std::vector<bool>, 256>& lookup_table);
 
     void serialize_tree(BitWriter& writer, const HuffmanCompressor::HuffmanNode* node);
 

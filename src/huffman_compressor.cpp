@@ -8,7 +8,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 void HuffmanCompressor::compress(BitWriter& writer, const std::vector<uint8_t>& data) {
@@ -61,15 +60,10 @@ void HuffmanCompressor::compress(BitWriter& writer, const std::vector<uint8_t>& 
         min_heap.pop_back();
     }
 
-    std::unordered_map<uint8_t, std::vector<bool>> lookup_table;
+    std::array<std::vector<bool>, 256> lookup_table;
     if (tree_root) {
         std::vector<bool> buffer;
         generate_path(tree_root.get(), buffer, lookup_table);
-    }
-
-    std::array<std::vector<bool>, 256> fast_lookup;
-    for (const auto& [byte_val, bit_vector] : lookup_table) {
-        fast_lookup[byte_val] = bit_vector;
     }
 
     uint32_t total_size = static_cast<uint32_t>(data.size());
@@ -85,7 +79,7 @@ void HuffmanCompressor::compress(BitWriter& writer, const std::vector<uint8_t>& 
     }
 
     for (uint8_t byte : data) {
-        const std::vector<bool>& bit_vector = fast_lookup[byte];
+        const std::vector<bool>& bit_vector = lookup_table[byte];
 
         for (bool bit : bit_vector) {
             writer.write_bit(bit);
@@ -127,9 +121,9 @@ std::vector<uint8_t> HuffmanCompressor::decompress(BitReader& reader) {
     return decompressed_data;
 }
 
-void HuffmanCompressor::generate_path(
-    const HuffmanCompressor::HuffmanNode* node, std::vector<bool>& current_path,
-    std::unordered_map<uint8_t, std::vector<bool>>& lookup_table) {
+void HuffmanCompressor::generate_path(const HuffmanCompressor::HuffmanNode* node,
+                                      std::vector<bool>& current_path,
+                                      std::array<std::vector<bool>, 256>& lookup_table) {
     if (!node)
         return;
 
