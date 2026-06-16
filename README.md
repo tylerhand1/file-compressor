@@ -4,14 +4,14 @@ A C++17 project for compressing and decompressing files by implementing Huffman 
 
 ## Motivation & Purpose
 
-I chose to build this out of curiosity for file compression after utilizing `compressorJs` in a separate project. So I decided to try it in C++ for a challenge. This project handles text and binary files, achieving up to a 44% reduction in file size for standard English text.
+I chose to build this out of curiosity for file compression after utilizing `Compressor.js` in a separate project. So I decided to try it in C++ for a challenge. This project handles text and binary files, achieving up to a 44% reduction in file size for standard English text.
 
 I built the engine using modern object-oriented software engineering principles, featuring automated memory safety, dependency inversion, and terminal output tracking to log compression ratios.
 
 ## Key Architectural Decisions & Engineering Highlights
 
 * **Smart Pointers**: Enforced memory safety by managing the binary tree entirely through `std::unique_ptr` and ensuring automatic cleanup.
-* **Decoupled Dependency Injection (DI)**: Designed the compression engine around strict DI principles by injecting the abstract output `BitWriter` interface via the constructor. This decouples the core compression logic from the underlying storage medium, allowing seamless extensibility for alternative output destinations.
+* **Dependency Injection (DI)**: Designed the compression engine around strict DI principles by injecting the abstract output `BitWriter` interface to the functions that require I/O. This decouples the core compression logic from the underlying storage medium, allowing seamless extensibility for alternative output destinations.
 * **Encapsulated Bit-wise Logic**: Isolated bit-wise logic into `BitWriter` and `BitReader` classes to keep the core `HuffmanCompressor` class clean.
 * **Safe Bitstreaming Operations**: Configured index validation within the I/O data streams to ensure no run-time memory violations during binary tree parsing.
 * **Automated CI Pipeline**: Configured CMake presets, Catch2 unit tests, and AddressSanitizer (ASan) memory profiling to catch memory leaks and overflows automatically in CI.
