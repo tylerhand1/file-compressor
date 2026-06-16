@@ -1,6 +1,7 @@
 #include "huffman_compressor.h"
 
 #include "bit_reader.h"
+#include "bit_writer.h"
 
 #include <algorithm>
 #include <array>
@@ -10,9 +11,9 @@
 #include <unordered_map>
 #include <vector>
 
-std::vector<uint8_t> HuffmanCompressor::compress(const std::vector<uint8_t>& data) {
+void HuffmanCompressor::compress(BitWriter& writer, const std::vector<uint8_t>& data) {
     if (data.empty()) {
-        return {};
+        return;
     }
 
     std::array<std::size_t, 256> frequencies{};
@@ -75,25 +76,23 @@ std::vector<uint8_t> HuffmanCompressor::compress(const std::vector<uint8_t>& dat
     for (int i = 3; i >= 0; --i) {
         uint8_t byte = (total_size >> (i * 8)) & 0xFF;
         for (int b = 7; b >= 0; --b) {
-            writer->write_bit(((byte >> b) & 1) == 1);
+            writer.write_bit(((byte >> b) & 1) == 1);
         }
     }
 
     if (tree_root) {
-        serialize_tree(tree_root.get());
+        serialize_tree(writer, tree_root.get());
     }
 
     for (uint8_t byte : data) {
         const std::vector<bool>& bit_vector = fast_lookup[byte];
 
         for (bool bit : bit_vector) {
-            writer->write_bit(bit);
+            writer.write_bit(bit);
         }
     }
 
-    writer->flush();
-
-    return writer->get_data();
+    writer.flush();
 }
 
 std::vector<uint8_t> HuffmanCompressor::decompress(BitReader& reader) {
@@ -148,27 +147,28 @@ void HuffmanCompressor::generate_path(
     current_path.pop_back();
 }
 
-void HuffmanCompressor::serialize_tree(const HuffmanCompressor::HuffmanNode* node) {
+void HuffmanCompressor::serialize_tree(BitWriter& writer,
+                                       const HuffmanCompressor::HuffmanNode* node) {
     if (!node)
         return;
 
     if (node->character.has_value()) {
-        writer->write_bit(true);
+        writer.write_bit(true);
 
         uint8_t ch = node->character.value();
         for (int i = 7; i >= 0; --i) {
-            writer->write_bit(((ch >> i) & 1) == 1);
+            writer.write_bit(((ch >> i) & 1) == 1);
         }
         return;
     }
 
-    writer->write_bit(false);
+    writer.write_bit(false);
 
     if (node->left) {
-        serialize_tree(node->left.get());
+        serialize_tree(writer, node->left.get());
     }
     if (node->right) {
-        serialize_tree(node->right.get());
+        serialize_tree(writer, node->right.get());
     }
 }
 

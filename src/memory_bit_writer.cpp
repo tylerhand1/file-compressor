@@ -1,8 +1,8 @@
-#include "file_bit_writer.h"
+#include "memory_bit_writer.h"
 
 #include <cstdint>
 
-void FileBitWriter::write_bit(bool bit) {
+void MemoryBitWriter::write_bit(bool bit) {
     current_byte = static_cast<uint8_t>(current_byte << 1);
 
     if (bit)
@@ -17,7 +17,7 @@ void FileBitWriter::write_bit(bool bit) {
     }
 }
 
-void FileBitWriter::flush() {
+void MemoryBitWriter::flush() {
     if (bit_count > 0) {
         current_byte = static_cast<uint8_t>(current_byte << (8 - bit_count));
         buffer.push_back(current_byte);
