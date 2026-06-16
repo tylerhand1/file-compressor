@@ -1,6 +1,6 @@
 add_library(compressor_lib STATIC
   huffman_compressor.cpp
-  file_bit_writer.cpp
+  memory_bit_writer.cpp
 )
 
 target_include_directories(compressor_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

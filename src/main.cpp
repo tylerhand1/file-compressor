@@ -1,10 +1,9 @@
-#include "file_bit_reader.h"
-#include "file_bit_writer.h"
 #include "huffman_compressor.h"
+#include "memory_bit_reader.h"
+#include "memory_bit_writer.h"
 
 #include <iomanip>
 #include <iostream>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -55,11 +54,13 @@ int main(int argc, char* argv[]) {
     if (input_bytes.empty())
         return 0;
 
-    std::unique_ptr<BitWriter> bitWriter = std::make_unique<FileBitWriter>();
-    HuffmanCompressor huffmanProcessor(std::move(bitWriter));
+    HuffmanCompressor huffmanProcessor;
 
     if (mode == "-c") {
-        std::vector<uint8_t> compressed = huffmanProcessor.compress(input_bytes);
+        MemoryBitWriter writer;
+        huffmanProcessor.compress(writer, input_bytes);
+
+        const std::vector<uint8_t>& compressed = writer.get_data();
 
         double orig_size = static_cast<double>(input_bytes.size());
         double comp_size = static_cast<double>(compressed.size());
@@ -72,7 +73,7 @@ int main(int argc, char* argv[]) {
 
         write_all_stdout(compressed);
     } else if (mode == "-d") {
-        FileBitReader bitReader(input_bytes);
+        MemoryBitReader bitReader(input_bytes);
         std::vector<uint8_t> decompressed = huffmanProcessor.decompress(bitReader);
         write_all_stdout(decompressed);
     }

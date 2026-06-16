@@ -1,19 +1,21 @@
-#include "file_bit_reader.h"
-#include "file_bit_writer.h"
 #include "huffman_compressor.h"
+#include "memory_bit_reader.h"
+#include "memory_bit_writer.h"
 
 #include <catch2/catch_test_macros.hpp>
 
 auto huffman_round_trip = [](const std::vector<uint8_t>& originalData) -> std::vector<uint8_t> {
-    std::unique_ptr<BitWriter> compWriter = std::make_unique<FileBitWriter>();
-    HuffmanCompressor compressor(std::move(compWriter));
-    auto compressed = compressor.compress(originalData);
+    MemoryBitWriter writer;
+    HuffmanCompressor compressor;
+    compressor.compress(writer, originalData);
 
-    FileBitReader bitReader(compressed);
-    std::unique_ptr<BitWriter> decompWriter = std::make_unique<FileBitWriter>();
-    HuffmanCompressor decompressor(std::move(decompWriter));
+    auto compressed = writer.get_data();
 
-    return decompressor.decompress(bitReader);
+    MemoryBitReader reader(compressed);
+    MemoryBitWriter decompWriter;
+    HuffmanCompressor decompressor;
+
+    return decompressor.decompress(reader);
 };
 
 TEST_CASE("Initial Huffman round-trip passes", "[huffman]") {

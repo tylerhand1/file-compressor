@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-class FileBitWriter : public BitWriter {
+class MemoryBitWriter : public BitWriter {
   public:
     void write_bit(bool bit) override;
     void flush() override;
